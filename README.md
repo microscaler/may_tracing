@@ -25,5 +25,19 @@ optional polish once 2 is everywhere.
 
 ## Status
 
-Design under review. No code yet — see [docs/Design.md](docs/Design.md) for the API and
-the migration order (BRRTRouter → lifeguard → pw_telemetry → services).
+Design under review; stories refined. No code yet — see [docs/Design.md](docs/Design.md)
+for the API, [Epic 01](docs/Epics/01-span-context/README.md) for the crate's stories and
+[Epic 02](docs/Epics/02-adoption/README.md) for adoption in BRRTRouter, lifeguard,
+pw_telemetry and PriceWhisperer (executed in those repos, planned here).
+
+## Layout
+
+```
+docs/ADR/            ADR-0001..0003
+docs/Design.md       the crate design (API, storage, macros, consumers, tests, rollout)
+docs/Epics/          01-span-context (this crate), 02-adoption (the consumers)
+src/                 (Epic 01)
+tests/               (Epic 01; the ADR-0001 reproduction lives in tests/regression_adr0001.rs)
+examples/            (01.8)
+scripts/             check-span-discipline.sh (02.5)
+```
