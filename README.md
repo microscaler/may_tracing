@@ -83,6 +83,9 @@ threads never see it.
 3. Record events with an explicit parent: `info_in_current!` and friends.
 4. Choose inheritance at every spawn: `spawn_with_context` or `spawn_detached`. A raw
    `may::coroutine::spawn` starts with no context.
+5. The same for OS locks ([ADR-0004](docs/ADR/ADR-0004-no-os-lock-across-a-yield.md)):
+   never hold a `std::sync::Mutex`/`RwLock` or block on an OS primitive across a yield;
+   use `may::sync`. The failure is a deadlock, not a panic.
 
 `scripts/check-span-discipline.sh [--strict] <path>…` greps for violations; the four repos run it in CI.
 
@@ -96,7 +99,7 @@ threads never see it.
 ## Layout
 
 ```
-docs/ADR/            ADR-0001..0003
+docs/ADR/            ADR-0001..0004
 docs/Design.md       the crate design (API, storage, macros, consumers, tests, rollout)
 docs/Epics/          01-span-context (this crate), 02-adoption (the consumers)
 src/                 context.rs (slot, with_span), spawn.rs, macros.rs, otel.rs

@@ -75,6 +75,15 @@ the sequence and the acceptance check (the 200-stream load run) live in one plac
 - 02.4: a stream's `/stream` request span stays open for the life of the stream (the loop
   holds the handle), so its exported duration is the stream's, while `duration_ms` recorded
   by RequestLogger is the handler's. Documented, not changed.
+- 02.4 acceptance (21 Sep, 10:51 ET, market open, first run with real frames): 100 × 40 for
+  10 min — 67,098 frames, 0 gaps, 0 drops, 0 tick failures, 0 restarts, tail mean 4.8 ms /
+  p95 ≤ 10 ms, two token-refresh storms inside; trace shape in OpenSearch is
+  `http_request` → `push.tick` → `lifeguard.acquire_connection` / `lifeguard.execute_query`,
+  every query span parented (15,793 / 15,793 in a 3-minute window). Getting there exposed a
+  second deadlock class — an OS mutex held across a coroutine park in lifeguard's pool —
+  written up as ADR-0004 and fixed in lifeguard 106c86d. The `push.tick` span is DEBUG and
+  the dev profile runs `RUST_LOG=debug`, so ticks are exported in dev (~1 span/s/stream);
+  set the filter to `info` before user trials or move the tick to TRACE.
 - 02.5: the contextual-macro rule is `--strict` (opt-in): once nothing is entered a
   contextual span/event is mis-attribution, not the panic, and the four repos have
   thousands of contextual `debug!`/`info!` calls. Default mode (entered guards) is 0 hits
