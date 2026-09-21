@@ -25,8 +25,8 @@ optional polish once 2 is everywhere.
 
 ## Status
 
-0.1.0 — Epic 01 delivered (crate, tests, `otel` feature). Epic 02 (adoption in
-BRRTRouter, lifeguard, pw_telemetry, PriceWhisperer) is next; see
+0.1.1 — Epic 01 delivered (crate, tests, `otel` feature) and Epic 02 adopted in
+BRRTRouter (12581dd), lifeguard (62cfb69), pw_telemetry and pricewhisperer_push; see
 [docs/Design.md](docs/Design.md) for the API,
 [Epic 01](docs/Epics/01-span-context/README.md) and
 [Epic 02](docs/Epics/02-adoption/README.md) for the stories.
@@ -35,7 +35,7 @@ BRRTRouter, lifeguard, pw_telemetry, PriceWhisperer) is next; see
 
 ```toml
 [dependencies]
-may_tracing = { git = "https://github.com/microscaler/may_tracing.git", tag = "v0.1.0" }
+may_tracing = { git = "https://github.com/microscaler/may_tracing.git", tag = "v0.1.1" }
 ```
 
 The request-span shape — set, spawn with context, child span, event:
@@ -79,7 +79,7 @@ threads never see it.
 4. Choose inheritance at every spawn: `spawn_with_context` or `spawn_detached`. A raw
    `may::coroutine::spawn` starts with no context.
 
-`scripts/check-span-discipline.sh` (Epic 02.5) greps for violations in CI.
+`scripts/check-span-discipline.sh [--strict] <path>…` greps for violations; the four repos run it in CI.
 
 ## Feature flags
 

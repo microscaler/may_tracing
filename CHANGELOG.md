@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file. The format is based
 on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.1] - 2026-09-21
+
+### Added
+
+- `scripts/check-span-discipline.sh` (Epic 02.5): the ADR-0001 grep. Fails on `.enter()` /
+  `.entered()` / `.in_scope(` without a `// no-yield:` note; `--strict` also fails on
+  contextual `span!` / `event!` macros without `parent:` (opt-in: mis-attribution, not
+  the panic). Fixtures under `scripts/fixtures/span-discipline/`, tested by
+  `tests/check_span_discipline.rs`; wired into BRRTRouter, lifeguard and PriceWhisperer CI
+  via the fetched git checkout. Library code unchanged from 0.1.0.
+
 ## [0.1.0] - 2026-09-21
 
 ### Added

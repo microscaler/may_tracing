@@ -66,3 +66,8 @@ still entered around an event), and lifeguard's `tracing_helpers` (fixed).
   in our may crates today.
 - The rule is cheap to follow and removes the whole failure class; it costs nesting in
   traces until ADR-0002 lands.
+
+
+## Enforcement
+
+`scripts/check-span-discipline.sh` (may_tracing ≥ 0.1.1) fails CI on an entered guard without a `// no-yield:` note, and with `--strict` on contextual `span!`/`event!` macros without `parent:`. BRRTRouter, lifeguard, PriceWhisperer (`microservices/`, may crates) and this crate run it.

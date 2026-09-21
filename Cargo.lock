@@ -283,7 +283,7 @@ dependencies = [
 
 [[package]]
 name = "may_tracing"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "may",
  "opentelemetry",
@@ -917,11 +917,7 @@ name = "microscaler-observability"
 version = "0.1.0"
 
 [[patch.unused]]
-name = "brrtrouter"
-version = "0.1.0-alpha.1"
-
-[[patch.unused]]
-name = "brrtrouter_macros"
+name = "sesame-idam-client"
 version = "0.1.0"
 
 [[patch.unused]]
@@ -929,7 +925,11 @@ name = "may_postgres"
 version = "0.1.0"
 
 [[patch.unused]]
-name = "sesame-idam-client"
+name = "brrtrouter"
+version = "0.1.0-alpha.1"
+
+[[patch.unused]]
+name = "brrtrouter_macros"
 version = "0.1.0"
 
 [[patch.unused]]

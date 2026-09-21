@@ -10,7 +10,7 @@ PriceWhisperer push streams), then the CI rule that keeps ADR-0001 true. Each st
 **executed in its own repository**; this epic is the plan and the acceptance record, so
 the sequence and the acceptance check (the 200-stream load run) live in one place.
 
-**Status:** PLANNED — blocked on Epic 01 `v0.1.0`
+**Status:** DONE — 21 Sep 2026 (02.1 BRRTRouter 12581dd, 02.2 lifeguard 62cfb69/0a97f63, 02.3 PriceWhisperer 8fa30ffb, 02.4 b15bd292, 02.5 v0.1.1 + CI wiring; the 200 × 40 acceptance run is recorded in PriceWhisperer US_37_08)
 **Target Milestone:** the sanitisation sprint
 **Dependencies:** Epic 01 v0.1.0; ADR-0001 already in force
 
@@ -20,11 +20,11 @@ the sequence and the acceptance check (the 200-stream load run) live in one plac
 
 | Story | Title | Repo | Points | Status |
 |-------|-------|------|--------|--------|
-| [02.1](stories/02.1-brrtrouter-request-span.md) | BRRTRouter: the request span is the coroutine context, never entered | BRRTRouter | 3 | TODO |
-| [02.2](stories/02.2-lifeguard-child-spans.md) | lifeguard: spans are children of the coroutine context; nesting default on | lifeguard | 2 | TODO |
-| [02.3](stories/02.3-pw-telemetry-events.md) | pw_telemetry: business events attributed to the request | PriceWhisperer | 1 | TODO |
-| [02.4](stories/02.4-pricewhisperer-push.md) | pricewhisperer_push: stream loops and ticks under the opening request; the load-run acceptance | PriceWhisperer | 2 | TODO |
-| [02.5](stories/02.5-ci-rule.md) | The ADR-0001 grep in every may crate's CI | all four | 1 | TODO |
+| [02.1](stories/02.1-brrtrouter-request-span.md) | BRRTRouter: the request span is the coroutine context, never entered | BRRTRouter | 3 | DONE |
+| [02.2](stories/02.2-lifeguard-child-spans.md) | lifeguard: spans are children of the coroutine context; nesting default on | lifeguard | 2 | DONE |
+| [02.3](stories/02.3-pw-telemetry-events.md) | pw_telemetry: business events attributed to the request | PriceWhisperer | 1 | DONE |
+| [02.4](stories/02.4-pricewhisperer-push.md) | pricewhisperer_push: stream loops and ticks under the opening request; the load-run acceptance | PriceWhisperer | 2 | DONE |
+| [02.5](stories/02.5-ci-rule.md) | The ADR-0001 grep in every may crate's CI | all four | 1 | DONE |
 
 ---
 
@@ -53,3 +53,22 @@ the sequence and the acceptance check (the 200-stream load run) live in one plac
 | lifeguard's pool worker coroutines inherit nothing and their own logging goes flat | By design (pool-scoped); 02.2 documents it and tags worker events with the pool tier instead |
 | A consumer on Tokio (workers, ingestors) picks up may_tracing and the thread fallback behaves differently | 01.2's thread-slot semantics are what Tokio-side code gets; pw_telemetry's `init_worker` path is checked in 02.3 |
 | The 200-stream acceptance run is disturbed by the market open | Run after 16:00 ET as US_37_08 did; the 09:30 burst run is a separate, later check |
+
+## Delivered notes (21 Sep 2026)
+
+- 02.1: BRRTRouter handlers are long-lived coroutines fed over a channel, not spawned per
+  request, so the request span travels on a new `HandlerRequest::span` field and each
+  handler loop runs the request under `may_tracing::with_span`; `spawn_with` is used
+  nowhere in BRRTRouter. The three security spans were converted (created, not entered)
+  rather than allow-listed, so BRRTRouter's allow-list is empty.
+- 02.2: pool workers are OS threads (`thread::Builder`), so "spawn_detached" did not
+  apply — worker spans are roots by construction. `MayPostgresExecutor` still had three
+  `.entered()` guards that c9673d7 missed; fixed in the same commit. The histogram bucket
+  fix is 0a97f63.
+- 02.4: a stream's `/stream` request span stays open for the life of the stream (the loop
+  holds the handle), so its exported duration is the stream's, while `duration_ms` recorded
+  by RequestLogger is the handler's. Documented, not changed.
+- 02.5: the contextual-macro rule is `--strict` (opt-in): once nothing is entered a
+  contextual span/event is mis-attribution, not the panic, and the four repos have
+  thousands of contextual `debug!`/`info!` calls. Default mode (entered guards) is 0 hits
+  on all four repos with no allow-list entries.
