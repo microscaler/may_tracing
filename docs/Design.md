@@ -32,9 +32,11 @@ pub use event_in_current as info_in_current /* + warn_/error_/debug_ variants */
 pub unsafe fn spawn_in_current_span<F, T>(b: Builder, f: F) -> io::Result<JoinHandle<T>>
 where F: FnOnce() -> T + Send + 'static, T: Send + 'static;
 pub unsafe fn spawn_detached<F, T>(b: Builder, f: F) -> io::Result<JoinHandle<T>>;   // starts with Span::none()
+pub unsafe fn spawn_with<F, T>(b: Builder, span: Span, f: F) -> io::Result<JoinHandle<T>>; // explicit span (delivered, 01.4)
+pub unsafe fn go_in_current_span<F, T>(f: F) -> JoinHandle<T>;                        // may::go! shape
 
 /// Extension trait so call sites read naturally: `Builder::new().name(..).spawn_with_context(f)`.
-pub trait BuilderExt { unsafe fn spawn_with_context<F, T>(self, f: F) -> io::Result<JoinHandle<T>>; unsafe fn spawn_detached<F, T>(self, f: F) -> …; }
+pub trait BuilderExt { unsafe fn spawn_with_context<F, T>(self, f: F) -> io::Result<JoinHandle<T>>; unsafe fn spawn_detached<F, T>(self, f: F) -> …; unsafe fn spawn_with_span<F, T>(self, span: Span, f: F) -> …; }
 
 /// Propagation helpers (feature "otel"): the W3C traceparent for `current()`, and the
 /// reverse for an inbound request — thin wrappers over tracing-opentelemetry.
@@ -65,6 +67,10 @@ never trace.
 `is_coroutine()` makes the same API valid on native threads (Tokio workers, tests) by
 falling back to a thread-local — on a native thread the thread *is* the unit of
 execution, so the thread-local is correct there.
+
+**Delivered (01.2):** may's `LocalKey::with` performs exactly this switch itself
+(thread-local backend outside a coroutine), so the crate has the single `coroutine_local!`
+slot and no `CURRENT_THREAD`; `is_in_coroutine()` is exposed for callers that want to know.
 
 ## 3. `with_span` / `set_current`
 
@@ -112,6 +118,10 @@ macro_rules! child_span {
     }};
 }
 ```
+
+**Delivered (01.5):** the expansion is a `match` on `$crate::__parent_or_none() -> Option<Span>`
+(hidden helper; keeps the expansion small and hygienic), and both macros accept an
+optional `target: $t` right after the level, as `tracing`'s own macros do.
 
 `parent: &Span` on a disabled span would be treated by `tracing` as "no parent" anyway;
 the branch is there so the intent is explicit and the disabled case does no work. Event
@@ -197,6 +207,13 @@ layers separate.
 - **The regression**: reproduce the ADR-0001 panic with a deliberately entered span across
   a yield under a real `Registry` (expect the panic), then the same scenario through
   `with_span` (expect none). This is the test that must never be deleted.
+
+**Delivered (01.6):** N=64 coroutines × 400 iterations on 4 workers reproduces the panic on
+every run (2–4 coroutines of 64; message `tried to clone a span (Id(..)) that already
+closed`). Two things were needed: the subscriber must be the process **global** default
+(`set_default` is thread-scoped; worker threads never see it), and the good workload's own
+span must be created with `parent: None`, because after the bad workload a contextual
+`info_span!` on a poisoned worker trips the same assertion — which is, after all, the point.
 
 ## 9. Rollout
 
