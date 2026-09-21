@@ -1,0 +1,41 @@
+[package]
+name = "may_tracing"
+version = "0.1.0"
+edition = "2021"
+license = "MIT/Apache-2.0"
+description = "tracing span context for may coroutines - the may equivalent of Tokio's Instrument"
+repository = "https://github.com/microscaler/may_tracing"
+readme = "README.md"
+keywords = ["may", "coroutine", "tracing", "span", "instrument"]
+categories = ["asynchronous", "development-tools::debugging"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+# W3C traceparent in/out against the coroutine context (Story 01.7).
+otel = ["dep:tracing-opentelemetry", "dep:opentelemetry", "dep:opentelemetry_sdk"]
+# Reserved for ADR-0003 (scheduler enter/exit hooks in the may fork). Declared so
+# that ADR-0003 is a feature bump, not a manifest rewrite. Intentionally empty.
+scheduler-hooks = []
+
+[dependencies]
+may = "0.3"
+tracing = "0.1"
+tracing-opentelemetry = { version = "0.32", optional = true }
+opentelemetry = { version = "0.31", features = ["trace"], optional = true }
+opentelemetry_sdk = { version = "0.31", features = ["trace"], optional = true }
+
+[dev-dependencies]
+tracing-subscriber = { version = "0.3", features = ["registry", "fmt"] }
+opentelemetry_sdk = { version = "0.31", features = ["trace", "testing"] }
+
+[[example]]
+name = "otel_propagation"
+required-features = ["otel"]
+
+# Same fork as BRRTRouter/lifeguard: fixes the Rust 1.90+ macOS thread-local bug in
+# generator-rs (the CI macos-latest job needs it; harmless on Linux).
+[patch.crates-io]
+generator = { git = "https://github.com/microscaler/generator-rs.git", branch = "fix/rust-1.90-thread-local-macos" }
