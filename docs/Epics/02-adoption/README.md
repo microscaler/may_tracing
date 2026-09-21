@@ -65,6 +65,13 @@ the sequence and the acceptance check (the 200-stream load run) live in one plac
   apply — worker spans are roots by construction. `MayPostgresExecutor` still had three
   `.entered()` guards that c9673d7 missed; fixed in the same commit. The histogram bucket
   fix is 0a97f63.
+  Follow-up 796e219: the query span is created **on the worker thread** (`exec_on_client`),
+  which has no context, so after the first deploy 0 of 1377 `lifeguard.execute_query`
+  spans had a parent. The job channel now carries the enqueuing coroutine's
+  `may_tracing::current()` in an `Envelope`, and the worker sets it as its thread-local
+  context for the job. General lesson for the crate docs: a context does not cross a
+  channel by itself; whoever hands work to another thread or coroutine must carry it
+  (`spawn_with_context` for coroutines, an explicit field for channels).
 - 02.4: a stream's `/stream` request span stays open for the life of the stream (the loop
   holds the handle), so its exported duration is the stream's, while `duration_ms` recorded
   by RequestLogger is the handler's. Documented, not changed.

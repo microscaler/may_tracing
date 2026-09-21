@@ -65,6 +65,11 @@ let worker = unsafe { may_tracing::Builder::new().spawn_detached(pool_worker) }?
 Outside a coroutine (a Tokio worker, a test on the main thread) the same calls use a
 thread-local slot, so shared code needs no `cfg`.
 
+A context never crosses a channel by itself. Work handed to a worker thread or another
+coroutine through a queue must carry `may_tracing::current()` along and `set_current` it
+on the other side (lifeguard's pool does this in its job envelope); only `spawn_with_context`
+does it for you, and only at spawn.
+
 Tests that spawn coroutines must install their subscriber with
 `tracing::subscriber::set_global_default`: `set_default` is thread-scoped and may's worker
 threads never see it.
