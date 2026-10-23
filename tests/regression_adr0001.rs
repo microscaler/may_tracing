@@ -25,6 +25,10 @@ const ITERS: usize = 400;
 /// Returns (coroutines that panicked, parent mismatches in the good case).
 fn workload(good: bool) -> (usize, usize) {
     may::config().set_workers(4);
+    // The bad case panics inside tracing-subscriber on purpose, and unwinding a panic (with its backtrace
+    // capture) needs more than may's default 32 KiB coroutine stack: on ubuntu-latest the coroutines overflowed
+    // ("stack overflow detected, size=4096") and may exited the process before any panic was caught. 512 KiB.
+    may::config().set_stack_size(0x10000);
     let rec = support::install();
     let mismatches = Arc::new(AtomicUsize::new(0));
     let panic_msgs = Arc::new(std::sync::Mutex::new(Vec::<String>::new()));
