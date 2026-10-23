@@ -103,13 +103,23 @@ fn entered_across_yield_panics_on_registry() {
         std::process::exit(if panics > 0 { 0 } else { 3 });
     }
     let out = std::process::Command::new(std::env::current_exe().unwrap())
-        .args(["--exact", "entered_across_yield_panics_on_registry", "--nocapture", "--test-threads=1"])
+        .args([
+            "--exact",
+            "entered_across_yield_panics_on_registry",
+            "--nocapture",
+            "--test-threads=1",
+        ])
         .env(BAD_CHILD, "1")
         .output()
         .unwrap();
     let stdout = String::from_utf8_lossy(&out.stdout);
     let stderr = String::from_utf8_lossy(&out.stderr);
-    println!("bad case (child): {:?}\n{}{}", out.status, stdout.trim(), stderr.trim());
+    println!(
+        "bad case (child): {:?}\n{}{}",
+        out.status,
+        stdout.trim(),
+        stderr.trim()
+    );
     assert_ne!(
         out.status.code(),
         Some(3),
