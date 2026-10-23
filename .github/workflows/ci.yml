@@ -29,10 +29,13 @@ jobs:
       - run: sh scripts/check-span-discipline.sh --strict src
       - run: cargo clippy --all-features --all-targets -- -D warnings
       - run: cargo build --examples --all-features
-      - run: cargo test --all-features
-      # the ADR-0001 reproduction is probabilistic by nature; three runs per host
+      # the ADR-0001 reproduction is probabilistic by nature; three runs per host, uncaptured so a failure shows
+      # its output (on ubuntu it has exited 1 with nothing captured since September)
+      - run: cargo test --all-features --test regression_adr0001 -- --nocapture
+        env: { RUST_BACKTRACE: "1" }
       - run: cargo test --test regression_adr0001 -- --nocapture
       - run: cargo test --test regression_adr0001 -- --nocapture
+      - run: cargo test --all-features -- --skip entered_across_yield_panics_on_registry
       - run: cargo doc --no-deps --all-features
       - run: cargo doc --no-deps
 
