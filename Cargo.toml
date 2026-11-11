@@ -23,13 +23,13 @@ scheduler-hooks = []
 [dependencies]
 may = "0.3"
 tracing = "0.1"
-tracing-opentelemetry = { version = "0.32", optional = true }
-opentelemetry = { version = "0.31", features = ["trace"], optional = true }
-opentelemetry_sdk = { version = "0.31", features = ["trace"], optional = true }
+tracing-opentelemetry = { version = "0.34", optional = true }
+opentelemetry = { version = "0.33", features = ["trace"], optional = true }
+opentelemetry_sdk = { version = "0.33", features = ["trace"], optional = true }
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.3", features = ["registry", "fmt"] }
-opentelemetry_sdk = { version = "0.31", features = ["trace", "testing"] }
+opentelemetry_sdk = { version = "0.33", features = ["trace", "testing"] }
 
 [[example]]
 name = "otel_propagation"
