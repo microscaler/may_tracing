@@ -34,8 +34,3 @@ opentelemetry_sdk = { version = "0.33", features = ["trace", "testing"] }
 [[example]]
 name = "otel_propagation"
 required-features = ["otel"]
-
-# Same fork as BRRTRouter/lifeguard: fixes the Rust 1.90+ macOS thread-local bug in
-# generator-rs (the CI macos-latest job needs it; harmless on Linux).
-[patch.crates-io]
-generator = { git = "https://github.com/microscaler/generator-rs.git", branch = "fix/rust-1.90-thread-local-macos" }
